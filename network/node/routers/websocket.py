@@ -15,15 +15,17 @@ from services.network import broadcast_action, send_file_to_client
 from services.torrent import create_torrent
 
 from clients.logger import log, MessageType
+from clients.torrent import TorrentClient
 
 from error_flags import ErrorFlags
 
 from utils.file import decode_and_save_file
 
 router = APIRouter()
+torrent_client = TorrentClient()
+
 
 active_connections: List[WebSocket] = []
-
 log_queue = []
 
 @router.websocket("/ws")
@@ -74,7 +76,8 @@ async def handle_message(message: str):
                 recipient = get_client(transaction.recipient)
                 file_name = f"{transaction.recipient}_{transaction.sender}"
                 decode_and_save_file(transaction.data, file_name)
-                create_torrent(file_name)
+                
+                torrent_client.create_torrent(file_name)
                 # await send_file_to_client(recipient.host, recipient.port, transaction.data)
 
             await log(MessageType.IDLE)
