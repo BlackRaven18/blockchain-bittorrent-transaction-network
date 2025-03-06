@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 import httpx
 import asyncio
@@ -8,7 +9,7 @@ from utils.utils import get_config
 running_processes = {}
 
 def start_logger():
-    
+
     run_command = f"uvicorn main:app --port {get_config()['logger_port']} --reload "
     start_terminal_command = f'start powershell -NoExit -Command "{run_command}"'
 
@@ -19,9 +20,9 @@ def start_logger():
 
 
 def start_nodes():
+
     for node in get_config()["nodes"]:
         run_command = f"python main.py --id {node['id']} --host {node['host']} --port {node['port']} --db_host {node['db']['host']} --db_port {node['db']['port']} --db_index {node['db']['index']}"
-
         start_terminal_command = f'start powershell -NoExit -Command "{run_command}"'
         print(start_terminal_command)
 

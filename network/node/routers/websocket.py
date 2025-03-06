@@ -12,10 +12,13 @@ from repositories.client import add_client, get_client
 from services.cryptography import verify_transaction
 from services.blockchain import conduct_vote, save_transaction, save_block, check_if_should_mine_block, mine_block, cancel_mine_block, verify_block
 from services.network import broadcast_action, send_file_to_client
+from services.torrent import create_torrent
 
 from clients.logger import log, MessageType
 
 from error_flags import ErrorFlags
+
+from utils.file import decode_and_save_file
 
 router = APIRouter()
 
@@ -69,7 +72,10 @@ async def handle_message(message: str):
 
             if result == "Transaction accepted":
                 recipient = get_client(transaction.recipient)
-                await send_file_to_client(recipient.host, recipient.port, transaction.data)
+                file_name = f"{transaction.recipient}_{transaction.sender}"
+                decode_and_save_file(transaction.data, file_name)
+                create_torrent(file_name)
+                # await send_file_to_client(recipient.host, recipient.port, transaction.data)
 
             await log(MessageType.IDLE)
 
