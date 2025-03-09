@@ -4,9 +4,7 @@ import os
 import time
 import threading
 
-from constants import FILES_DIR, TORRENTS_DIR
-
-MAX_SEED_TIME = 60
+from constants import FILES_DIR, TORRENTS_DIR, MAX_SEED_TIME
 
 session = lt.session()
 session.listen_on(6881, 6891)
@@ -19,9 +17,7 @@ class TorrentClient:
         self.session = session
 
     def create_torrent(self, payload: str) -> str:
-        payload_path = os.path.abspath(f"../{FILES_DIR}/{payload}.txt")
-
-        print("Payload path: " + str(payload_path))
+        payload_path = os.path.abspath(f"../{FILES_DIR}/{payload}")
 
         fs = lt.file_storage()
         lt.add_files(fs, payload_path)
@@ -35,7 +31,9 @@ class TorrentClient:
 
         lt.set_piece_hashes(t, os.path.dirname(payload_path))
 
-        torrent_file = os.path.abspath(f"../{TORRENTS_DIR}/{payload}.torrent")
+        torrent_name = payload.split(".")[0] + ".torrent"
+
+        torrent_file = os.path.abspath(f"../{TORRENTS_DIR}/{torrent_name}")
 
         with open(torrent_file, "wb") as f:
             f.write(lt.bencode(t.generate()))
@@ -67,6 +65,8 @@ class TorrentClient:
             status = handle.status()
             print(f"🌍 Peers: {status.num_peers} | ⬆️ Upload: {status.upload_rate / 1000:.2f} kB/s")
             time.sleep(1)
+
+        session.remove_torrent(handle)
 
     def seed_torrent(self, torrent_file_path: str) -> None:
         """Funkcja nieblokująca uruchamiająca seedowanie w oddzielnym wątku"""

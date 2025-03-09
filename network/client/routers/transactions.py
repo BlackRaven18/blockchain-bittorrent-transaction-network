@@ -28,9 +28,14 @@ async def new_transaction(
     if file is None:
         raise HTTPException(status_code=400, detail="No file uploaded.")
     
+    file_name = file.filename
     file_content = await file.read()
+
+    file_data = file_name + "::" + base64.b64encode(file_content).decode('utf-8')
+
+    print("File data: " + str(file_data))
     
-    transaction = Transaction(sender=args.id, recipient=recipient_id, data=base64.b64encode(file_content).decode('utf-8'))
+    transaction = Transaction(sender=args.id, recipient=recipient_id, data=file_data)
     print("Transaction: " + str(transaction.model_dump_json()))
 
     response = await send_transaction(server_url, server_port.value, transaction)

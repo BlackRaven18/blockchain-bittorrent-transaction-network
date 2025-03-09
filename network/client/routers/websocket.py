@@ -1,7 +1,11 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-import base64
 import os
+import base64
+import tempfile
+
+from services.torrent import download_torrent
+from args import args
 
 router = APIRouter()
 
@@ -9,18 +13,22 @@ router = APIRouter()
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
-        file_content = b""
+        torrent_file = b""
+        download_dir = os.path.abspath(f"downloaded/{args.id}")
+
+        if not os.path.exists(download_dir):
+            os.mkdir(download_dir)
+
 
         while True:
             message = await websocket.receive_text()
             print("Received message:", message)
 
-            file_content += base64.b64decode(message)
+            torrent_file_path = message
 
-            # if message == "EOF":
-            #     print("Received EOF, saving file...")
-            with open("received_file.txt", "wb") as f:
-                f.write(file_content)
+            torrent_file = open(torrent_file_path, "rb").read()
+
+            download_torrent(torrent_file, download_dir)
 
     except WebSocketDisconnect:
         print("WebSocket connection closed")

@@ -74,12 +74,11 @@ async def handle_message(message: str):
 
             if result == "Transaction accepted":
                 recipient = get_client(transaction.recipient)
-                file_name = f"{transaction.recipient}_{transaction.sender}"
-                decode_and_save_file(transaction.data, file_name)
+                full_file_name = decode_and_save_file(transaction.data, transaction.sender, transaction.recipient)
 
-                torrent_file_path = torrent_client.create_torrent(file_name)
+                torrent_file_path = torrent_client.create_torrent(full_file_name)
                 torrent_client.seed_torrent(torrent_file_path)
-                # await send_file_to_client(recipient.host, recipient.port, transaction.data)
+                await send_file_to_client(recipient.host, recipient.port, torrent_file_path)
 
             await log(MessageType.IDLE)
 
