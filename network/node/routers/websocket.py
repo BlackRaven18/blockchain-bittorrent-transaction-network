@@ -77,7 +77,9 @@ async def handle_message(message: str):
                 full_file_name = decode_and_save_file(transaction.data, transaction.sender, transaction.recipient)
 
                 torrent_file_path = torrent_client.create_torrent(full_file_name)
-                torrent_client.seed_torrent(torrent_file_path)
+                # torrent_client.seed_torrent(torrent_file_path)
+                await broadcast_action("seed_torrent", {"torrent_file_path": torrent_file_path}, False)
+
                 await send_file_to_client(recipient.host, recipient.port, torrent_file_path)
 
             await log(MessageType.IDLE)
@@ -146,6 +148,11 @@ async def handle_message(message: str):
             print("Block added to the blockchain")
 
             await log(MessageType.IDLE)
+        
+        elif action == "seed_torrent":
+            print("Seeding torrent...")
+            torrent_file_path = payload["torrent_file_path"]
+            torrent_client.seed_torrent(torrent_file_path)
 
         else:
             print(f"Unknown action: {action}")
