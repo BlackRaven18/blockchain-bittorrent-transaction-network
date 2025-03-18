@@ -4,7 +4,7 @@ import os
 import base64
 import tempfile
 
-from services.torrent import download_torrent
+from services.torrent import download_torrent, save_torrent
 from args import args
 
 router = APIRouter()
@@ -24,11 +24,10 @@ async def websocket_endpoint(websocket: WebSocket):
             message = await websocket.receive_text()
             print("Received message:", message)
 
-            torrent_file_path = message
+            torrent_file = message
+            torrent_file_path = save_torrent(torrent_file)
 
-            torrent_file = open(torrent_file_path, "rb").read()
-
-            download_torrent(torrent_file, download_dir)
+            download_torrent(torrent_file_path, download_dir)
 
     except WebSocketDisconnect:
         print("WebSocket connection closed")
